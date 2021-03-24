@@ -1,0 +1,93 @@
+#! /usr/bin/env python3
+
+import sys
+import math
+
+def index(matrix):
+    idxY = -1
+    idxX = -1
+    grainTab = matrix[4][:5]
+    Max = 99999999999
+    if min(grainTab) >= 0:
+        return -1, -1
+    else:
+        idxX = grainTab.index(min(grainTab))
+    for i in range(0, 4):
+        if matrix[i][9]:
+            if matrix[i][idxX] > 0 and Max > matrix[i][9] / matrix[i][idxX] > 0:
+                idxY = i
+                Max = matrix[i][9] / matrix[i][idxX]
+        elif Max > matrix[i][idxX] > 0:
+            idxY = i
+            Max = matrix[i][9] / matrix[i][idxX]
+    return idxX, idxY
+
+def JeanEude():
+    matrix = [
+        [float(1), float(0), float(1), float(0), float(2), float(1), float(0), float(0), float(0), float(sys.argv[1])],
+        [float(1), float(2), float(0), float(1), float(0), float(0), float(1), float(0), float(0), float(sys.argv[2])],
+        [float(2), float(1), float(0), float(1), float(0), float(0), float(0), float(1), float(0), float(sys.argv[3])],
+        [float(0), float(0), float(3), float(1), float(2), float(0), float(0), float(0), float(1), float(sys.argv[4])],
+        [-float(val) for val in sys.argv[5:]] + [float(0), float(0), float(0), float(0), float(0)]
+    ]
+    print("Resources: ", sys.argv[1], " F1, ", sys.argv[2], " F2, ", sys.argv[3], " F3, ", sys.argv[4], " F4\n", sep="")
+    result = [-1, -1, -1, -1]
+    while 42:
+        x, y = index(matrix)
+        if x == -1 or y == -1:
+            break
+        matrix[y] = [val / matrix[y][x] for val in matrix[y]]
+        for i in range(0, 5):
+            tmp = matrix[i][x]
+            if i == y:
+                continue
+            for j in range(0, 10):
+                matrix[i][j] -= tmp * matrix[y][j]
+        result[y] = x
+    total = 0
+    sort = ["0", "0", "0", "0", "0"]
+    for i in range(0, 4):
+        if result[i] != -1:
+            if matrix[i][-1] != 0:
+                sort[result[i]] = "{:.2f}".format(matrix[i][-1])
+                total += matrix[i][-1] * float(sys.argv[result[i] + 5])
+            else:
+                sort[result[i]] = "{:.0f}".format(matrix[i][-1])
+    grains = ["Oat", "Wheat", "Corn", "Barley", "Soy"]
+    for i in range(0, 5):
+        print(grains[i], ": {} units at ${:.0f}/unit".format(sort[i], float(sys.argv[i + 5])), sep="")
+    print("\nTotal production value: ${:.2f}".format(total))
+        
+def checkArgs():
+    for arg in sys.argv[1:]:
+        if not arg.isdigit():
+            exit(84)
+        if float(arg) < 0:
+            exit(84)
+    for arg in sys.argv[1:]:
+        if float(arg) < 0:
+            exit(84)
+
+def printUsage():
+    print("USAGE")
+    print("\t./307multigrains n1 n2 n3 n4 po pw pc pb ps\n")
+    print("DESCRIPTION")
+    print("\tn1\tnumber of tons of fertilizer F1")
+    print("\tn2\tnumber of tons of fertilizer F2")
+    print("\tn3\tnumber of tons of fertilizer F3")
+    print("\tn4\tnumber of tons of fertilizer F4")
+    print("\tpo\tprice of one unit of oat")
+    print("\tpw\tprice of one unit of wheat")
+    print("\tpc\tprice of one unit of corn")
+    print("\tpb\tprice of one unit of barley")
+    print("\tps\tprice of one unit of soy")
+
+if (len(sys.argv) == 10):
+    checkArgs()
+    JeanEude()
+elif (len(sys.argv) == 2) and sys.argv[1] == "-h":
+    printUsage()
+    exit(0)
+else:
+    printUsage()
+    exit(84)
